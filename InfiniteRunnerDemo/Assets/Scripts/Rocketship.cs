@@ -33,6 +33,11 @@ public class Rocketship : MonoBehaviour
     public SpriteRenderer sprite;
     private Color flinchColor = new Color(.5f, 0, 0, 0);
 
+    public AudioSource audioSource;
+    public AudioClip explosion;
+    public AudioClip points;
+    public AudioClip lose;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -48,6 +53,8 @@ public class Rocketship : MonoBehaviour
 
         // Finds the component called Sprite Renderer on the current gameobject
         sprite = GetComponent<SpriteRenderer>();
+
+        audioSource = GetComponent<AudioSource>();
     }
 
     // OnTriggerEnter2D: Runs when the rocket ships triggerzone is entered
@@ -65,6 +72,8 @@ public class Rocketship : MonoBehaviour
                 isAlive = false;
             }
             hpText.text = "HP: " + hp;
+
+            audioSource.PlayOneShot(explosion);
         }
         else if (collision.gameObject.name == "Points" && !isFlinching && isAlive) 
         {
@@ -78,6 +87,8 @@ public class Rocketship : MonoBehaviour
             }
 
             scoreText.text = "Score: " + score;
+            audioSource.PlayOneShot(points);
+
         }
 
         if (!isAlive && !gameManager.isGameOver)
@@ -85,13 +96,16 @@ public class Rocketship : MonoBehaviour
             // I am no longer alive and the game is currently not over yet
             KillPlayer();
             gameManager.GameOver();
+
+            audioSource.PlayOneShot(lose);
+
         }
     }
 
     // Kill Player: Disables the gameobject to prevent any unwanted interaction
     void KillPlayer()
     {
-        gameObject.SetActive(false);
+        sprite.enabled = false;
     }
 
     // Update is called once per frame
@@ -118,9 +132,11 @@ public class Rocketship : MonoBehaviour
             // I am no longer hit
             isFlinching = false;
         }
-
-        // Smoothly moves the rocket ship to the correct position
-        transform.position = Vector3.Lerp(transform.position, rocketPositions[currentPosIndex], Time.deltaTime * moveSpeed);
+        if (isAlive)
+        {
+            // Smoothly moves the rocket ship to the correct position
+            transform.position = Vector3.Lerp(transform.position, rocketPositions[currentPosIndex], Time.deltaTime * moveSpeed);
+        }
 
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
